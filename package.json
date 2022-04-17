@@ -10,7 +10,8 @@
   "dependencies": {
     "normalize.css": "^8.0.1",
     "three": "^0.139.2",
-    "vue": "^3.2.25"
+    "vue": "^3.2.25",
+    "vue-router": "^4.0.14"
   },
   "devDependencies": {
     "@types/three": "^0.139.0",
