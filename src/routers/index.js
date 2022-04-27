@@ -1,5 +1,6 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
 import EarthAndMoon from '@/EarthAndMoon.vue'
+import Car from '@/Car.vue'
 
 // 创建路由实例并传递 `routes` 配置
 const router = createRouter({
@@ -8,6 +9,7 @@ const router = createRouter({
   routes: [
     { path: '/', component: EarthAndMoon },
     { path: '/earth-and-moon', component: EarthAndMoon },
+    { path: '/car', component: Car },
   ],
 });
 
