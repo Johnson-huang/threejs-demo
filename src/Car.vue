@@ -23,13 +23,13 @@ export default defineComponent({
         // 场景
         scene = new THREE.Scene();
         // 相机
-        camera = new THREE.PerspectiveCamera(90, document.body.clientWidth / document.body.clientHeight, 0.1, 100);
+        camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 100);
         camera.position.set(0, 0, 3);
         // 渲染器
         renderer = new THREE.WebGLRenderer({
             antialias: true
         });
-        renderer.setSize(document.body.clientWidth, document.body.clientHeight);
+        renderer.setSize(window.innerWidth, window.innerHeight);
         // 插入
         document.querySelector('#car-box').appendChild(renderer.domElement);
         // 控制器
