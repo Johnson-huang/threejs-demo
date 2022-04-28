@@ -145,10 +145,10 @@ export default defineComponent({
 #earth-moon-box {
   background: url('./assets/earth-and-moon/imgs/background.jpeg') no-repeat center center;
   background-size: 100% 100%;
-}
 
-.label {
-  color: #fff;
-  font-size: 16px;
+  & /deep/ .label {
+    color: #fff;
+    font-size: 16px;
+  }
 }
 </style>
