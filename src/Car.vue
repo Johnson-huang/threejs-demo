@@ -384,7 +384,7 @@ export default defineComponent({
 })
 </script>
 
-<style scope>
+<style lang="less" scoped>
 #car-box {
   width: 100%;
   height: 100%;

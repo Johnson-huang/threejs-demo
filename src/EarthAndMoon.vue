@@ -141,7 +141,7 @@ export default defineComponent({
 })
 </script>
 
-<style scope>
+<style lang="less" scoped>
 canvas {
   background: url('./assets/earth-and-moon/imgs/background.jpeg') no-repeat center center;
   background-size: 100% 100%;
