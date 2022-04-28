@@ -142,7 +142,7 @@ export default defineComponent({
 </script>
 
 <style lang="less" scoped>
-canvas {
+#earth-moon-box {
   background: url('./assets/earth-and-moon/imgs/background.jpeg') no-repeat center center;
   background-size: 100% 100%;
 }
