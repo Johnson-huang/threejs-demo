@@ -6,7 +6,7 @@
 import * as THREE from 'three'
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js'
 import {CSS2DRenderer, CSS2DObject} from 'three/examples/jsm/renderers/CSS2DRenderer.js';
-import {reactive, onMounted, toRefs, defineComponent} from 'vue'
+import {reactive, onMounted, onUnmounted, toRefs, defineComponent} from 'vue'
 import moon_1024 from '@/assets/earth-and-moon/textures/planets/moon_1024.jpeg'
 import earth_1024 from '@/assets/earth-and-moon/textures/planets/earth_1024.jpeg'
 
@@ -120,16 +120,22 @@ export default defineComponent({
       requestAnimationFrame(animate);
     }
 
+    function handleResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      labelRenderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
     onMounted(() => {
       init();
       animate();
 
-      window.addEventListener('resize', function () {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        labelRenderer.setSize(window.innerWidth, window.innerHeight);
-      })
+      window.addEventListener('resize', handleResize)
+    })
+
+    onUnmounted(() => {
+      window.removeEventListener('resize', handleResize)
     })
 
     return {

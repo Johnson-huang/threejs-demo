@@ -20,7 +20,7 @@ export default defineComponent({
     function init() {
       scene = new THREE.Scene();
       camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-      renderer = new THREE.WebGLRenderer({ alpha: true });
+      renderer = new THREE.WebGLRenderer({ alpha: true }); // 背景透明
       renderer.setSize( window.innerWidth, window.innerHeight );
       document.querySelector('.canvas').appendChild( renderer.domElement );
       // 几何体

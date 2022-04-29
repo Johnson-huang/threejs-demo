@@ -6,7 +6,7 @@
 import * as THREE from 'three'
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js'
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js'
-import {reactive, onMounted, toRefs, defineComponent} from 'vue'
+import {reactive, onMounted, defineComponent, onUnmounted} from 'vue'
 
 let scene = null;
 let camera = null;
@@ -366,15 +366,21 @@ export default defineComponent({
       scene.add(cube);
     }
 
+    function handleResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
     onMounted(() => {
       init();
       animate();
 
-      window.addEventListener('resize', function () {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-      })
+      window.addEventListener('resize', handleResize)
+    })
+
+    onUnmounted(() => {
+      window.removeEventListener('resize', handleResize)
     })
 
     return {
