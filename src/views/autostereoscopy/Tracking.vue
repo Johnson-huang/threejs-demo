@@ -1,29 +1,36 @@
 <template>
   <div class="page-box">
-    <video id="myVideo" width="400" height="300" preload autoplay loop muted></video>
+    <video id="myVideo" width="400" height="300" preload autoplay loop muted controls></video>
   </div>
 </template>
 
 <script>
-import Tracking from 'tracking.js'
-import { defineComponent, onMounted } from 'vue'
+import 'tracking'
+import {defineComponent, onMounted} from 'vue'
 
 export default defineComponent({
   setup() {
+    // webRTC 打开摄像头
+    // https://www.jianshu.com/p/9f4a0782cd61
+
+    // 人脸识别 对应 裸眼3D 原理
+    // https://xiaozhuanlan.com/topic/0241985376
+
     onMounted(() => {
-      const colors = new Tracking.ColorTracker(['magenta', 'cyan', 'yellow']);
-
-      colors.on('track', function(event) {
-        if (event.data.length === 0) {
-          // No colors were detected in this frame.
-        } else {
-          event.data.forEach(function(rect) {
-            console.log(rect.x, rect.y, rect.height, rect.width, rect.color);
-          });
-        }
-      });
-
-      Tracking.track('#myVideo', colors);
+      // console.log(window.tracking, 123)
+      // const colors = new window.tracking.ColorTracker(['magenta', 'cyan', 'yellow']);
+      //
+      // colors.on('track', function (event) {
+      //   if (event.data.length === 0) {
+      //     // No colors were detected in this frame.
+      //   } else {
+      //     event.data.forEach(function (rect) {
+      //       console.log(rect.x, rect.y, rect.height, rect.width, rect.color);
+      //     });
+      //   }
+      // });
+      //
+      // window.tracking.track('#myVideo', colors);
     })
 
     return {}
@@ -32,30 +39,5 @@ export default defineComponent({
 </script>
 
 <style lang="less" scoped>
-  .page-box {
-    position: relative;
-    width: 100%;
-    height: 100vh;
-
-    .canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      margin: auto;
-      z-index: 2;
-    }
-
-    .background {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 400px;
-      height: 300px;
-      background: black;
-      z-index: 1;
-    }
-  }
+  .page-box {}
 </style>
