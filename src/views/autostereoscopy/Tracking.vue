@@ -1,6 +1,7 @@
 <template>
   <div class="page-box">
-    <video ref="videoRef" id="myVideo" width="400" height="300" preload autoplay loop muted controls></video>
+    <video ref="videoRef" id="myVideo" preload autoplay loop muted controls></video>
+    <div class="box"></div>
   </div>
 </template>
 
@@ -21,27 +22,28 @@ export default defineComponent({
 
     onMounted(async () => {
       // 是否支持访问用户媒体设备
-      if (checkGetUserMediaSupport()) {
-        // 获取支持的音视频设备
-        const devicesResult = await checkMediaDevices()
-        // TODO 判断一下视频输入设备
-        if (devicesResult.code !== 0) {
-          console.log('devicesResult data:', devicesResult.data)
-        } else {
-          console.log('checkMediaDevices 错误：', devicesResult)
-        }
-
-        // 访问用户媒体设备
-        // getUserMedia(
-        //     {audio: false, video: true},
-        //     (stream) => {
-        //       videoRef.value.srcObject = stream;
-        //     },
-        //     (error) => {
-        //       console.log(`访问用户媒体设备失败${error.name}, ${error.message}`);
-        //     }
-        // )
+      if (!checkGetUserMediaSupport()) {
+        return
       }
+
+      // 获取支持的音视频设备
+      // 判断是否有视频输入设备
+      const devicesResult = await checkMediaDevices()
+      if (devicesResult.code === 0 || !devicesResult.data.find(item => item.kind === 'videoinput')) {
+        console.log('checkMediaDevices 错误：', devicesResult)
+        return
+      }
+
+      // 访问用户媒体设备
+      // getUserMedia(
+      //     {audio: false, video: true},
+      //     (stream) => {
+      //       videoRef.value.srcObject = stream;
+      //     },
+      //     (error) => {
+      //       console.log(`访问用户媒体设备失败${error.name}, ${error.message}`);
+      //     }
+      // )
 
       // console.log(window.tracking, 123)
       // const colors = new window.tracking.ColorTracker(['magenta', 'cyan', 'yellow']);
@@ -67,5 +69,14 @@ export default defineComponent({
 </script>
 
 <style lang="less" scoped>
-  .page-box {}
+  .page-box {
+    display: flex;
+    justify-content: flex-start;
+    align-items: stretch;
+    height: 100vh;
+
+    #myVideo, .box {
+      width: 50%;
+    }
+  }
 </style>

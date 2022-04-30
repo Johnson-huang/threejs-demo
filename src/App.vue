@@ -12,4 +12,7 @@ export default defineComponent({
 </script>
 
 <style>
+  #app {
+    min-height: 100vh;
+  }
 </style>
