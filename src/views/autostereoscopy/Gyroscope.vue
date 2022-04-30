@@ -3,15 +3,9 @@
 </template>
 
 <script>
-import 'tracking'
-import 'tracking/build/data/face.js'
 import * as THREE from 'three'
 import {defineComponent, onMounted, onUnmounted, ref} from 'vue'
-import {checkGetUserMediaSupport, checkMediaDevices, getUserMedia} from '@/utils/media-devices'
 
-let trackerTask = null
-let nextRX = 0
-let nextRY = 0
 let scene, camera, renderer, cube;
 
 export default defineComponent({
@@ -42,23 +36,25 @@ export default defineComponent({
 
       loop();
 
-      document.querySelector(".page-box").onclick = () => {
-        window.DeviceOrientationEvent.requestPermission()
-            .then(state => {
-              switch (state) {
-                case "granted":
-                  // you can do something
-                  window.addEventListener('deviceorientation', capture_orientation, false);
-                  break;
-                case "denied":
-                  alert("你拒绝了使用陀螺仪");
-                  break;
-                case "prompt":
-                  alert("其他行为");
-                  break;
-              }
-            });
-      }
+      document.querySelector(".page-box").addEventListener('click', handleClick)
+    }
+
+    function handleClick() {
+      window.DeviceOrientationEvent.requestPermission()
+          .then(state => {
+            switch (state) {
+              case "granted":
+                // you can do something
+                window.addEventListener('deviceorientation', capture_orientation, false);
+                break;
+              case "denied":
+                alert("你拒绝了使用陀螺仪");
+                break;
+              case "prompt":
+                alert("其他行为");
+                break;
+            }
+          });
     }
 
     function addLight() {
@@ -103,6 +99,7 @@ export default defineComponent({
     })
 
     onUnmounted(() => {
+      document.querySelector(".page-box").removeEventListener('click', handleClick)
     })
 
     return {}
