@@ -11,7 +11,7 @@
 <script>
 import 'tracking'
 import 'tracking/build/data/face.js'
-import {defineComponent, onMounted, ref} from 'vue'
+import {defineComponent, onMounted, onUnmounted, reactive, ref} from 'vue'
 import {checkGetUserMediaSupport, checkMediaDevices, getUserMedia} from '@/utils/media-devices'
 
 export default defineComponent({
@@ -21,6 +21,9 @@ export default defineComponent({
 
     // 人脸识别 对应 裸眼3D 原理
     // https://xiaozhuanlan.com/topic/0241985376
+    const state = reactive({
+      trackerTask: null
+    })
 
     const videoRef = ref(null)
     const canvasRef = ref(null)
@@ -57,12 +60,14 @@ export default defineComponent({
             tracker.setInitialScale(4)
             tracker.setStepSize(2)
             tracker.setEdgesDensity(0.1)
-            tracking.track('#myVideo', tracker, {camera: true})
+            state.trackerTask = tracking.track('#myVideo', tracker, {camera: true})
 
             tracker.on('track', (event) => {
               // 清除之前的图形
               context.clearRect(0, 0, canvasRef.value.width, canvasRef.value.height)
-
+              // TODO rect.total 作用是什么
+              // TODO 为什么会跟踪到眼睛
+              // TODO 似乎不太准
               event.data.forEach((rect) => {
                 context.strokeStyle = '#a64ceb'
                 context.strokeRect(rect.x, rect.y, rect.width, rect.height)
@@ -82,6 +87,13 @@ export default defineComponent({
     onMounted(async () => {
       // 打开视频
       await openMedia()
+    })
+
+    onUnmounted(() => {
+      if (state.trackerTask) {
+        // 停止跟踪
+        state.trackerTask.stop()
+      }
     })
 
     return {
