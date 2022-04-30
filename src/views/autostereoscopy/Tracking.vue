@@ -47,34 +47,31 @@ export default defineComponent({
       getUserMedia(
           {audio: false, video: true},
           (stream) => {
+            // 设置视频流
             videoRef.value.srcObject = stream;
 
             // 设置 canvas 宽高
-            // TODO 宽高比例问题待解决
             const context = canvasRef.value.getContext('2d')
             canvasRef.value.width = window.innerWidth / 2
             canvasRef.value.height = window.innerHeight
 
             // 设置人脸识别跟踪
             const tracker = new tracking.ObjectTracker(['face'])
-            tracker.setInitialScale(4)
-            tracker.setStepSize(2)
-            tracker.setEdgesDensity(0.1)
+            tracker.setInitialScale(4);
+            tracker.setStepSize(2);
+            tracker.setEdgesDensity(0.1);
             state.trackerTask = tracking.track('#myVideo', tracker, {camera: true})
 
             tracker.on('track', (event) => {
               // 清除之前的图形
               context.clearRect(0, 0, canvasRef.value.width, canvasRef.value.height)
-              // TODO rect.total 作用是什么
-              // TODO 为什么会跟踪到眼睛
-              // TODO 似乎不太准
               event.data.forEach((rect) => {
-                context.strokeStyle = '#a64ceb'
-                context.strokeRect(rect.x, rect.y, rect.width, rect.height)
-                context.font = '22px Helvetica'
-                context.fillStyle = '#fff'
-                context.fillText(`x：${rect.x}px`, rect.x + rect.width + 5, rect.y + 22)
-                context.fillText(`y：${rect.y}px`, rect.x + rect.width + 5, rect.y + 44)
+                context.strokeStyle = '#a64ceb';
+                context.strokeRect(rect.x, rect.y, rect.width, rect.height);
+                context.font = '11px Helvetica';
+                context.fillStyle = "#fff";
+                context.fillText(`x：${rect.x}px`, rect.x + rect.width + 5, rect.y + 11)
+                context.fillText(`y：${rect.y}px`, rect.x + rect.width + 5, rect.y + 22)
               })
             })
           },
