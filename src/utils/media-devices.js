@@ -13,7 +13,7 @@ export function checkMediaDevices() {
         if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices()) {
             reject({
                 code: 0,
-                msg: '不支持'
+                msg: '不支持获取音视频设备'
             })
         } else {
             navigator.mediaDevices.enumerateDevices()

@@ -149,7 +149,7 @@ export default defineComponent({
 
 <style lang="less" scoped>
 #earth-moon-box {
-  background: url('./assets/earth-and-moon/imgs/background.jpeg') no-repeat center center;
+  background: url('../assets/earth-and-moon/imgs/background.jpeg') no-repeat center center;
   background-size: 100% 100%;
 
   & /deep/ .label {

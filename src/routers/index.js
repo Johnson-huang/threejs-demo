@@ -2,9 +2,9 @@ import {createRouter, createWebHashHistory} from 'vue-router';
 import Autostereoscopy from "@/routers/autostereoscopy";
 
 export const allRoutes = [
-    {path: '/', component: () => import('@/Home.vue'), meta: {title: '首页'}},
-    {path: '/car', component: () => import('@/Car.vue'), meta: {title: '汽车模型'}},
-    {path: '/earth-and-moon', component: () => import('@/EarthAndMoon.vue'), meta: {title: '地月环绕'}},
+    {path: '/', component: () => import('@/views/Home.vue'), meta: {title: '首页'}},
+    {path: '/car', component: () => import('@/views/Car.vue'), meta: {title: '汽车模型'}},
+    {path: '/earth-and-moon', component: () => import('@/views/EarthAndMoon.vue'), meta: {title: '地月环绕'}},
     // 裸眼3D
     ...Autostereoscopy
 ]
