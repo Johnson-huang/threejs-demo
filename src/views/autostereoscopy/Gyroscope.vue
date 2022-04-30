@@ -49,8 +49,8 @@ export default defineComponent({
 
             // 设置 canvas 宽高
             const context = canvasRef.value.getContext('2d')
-            canvasRef.value.width = 320
-            canvasRef.value.height = 240
+            canvasRef.value.width = window.innerWidth / 2
+            canvasRef.value.height = window.innerHeight
 
             // 设置人脸识别跟踪
             const tracker = new tracking.ObjectTracker(['face'])
@@ -85,14 +85,14 @@ export default defineComponent({
     function init() {
       scene = new THREE.Scene();
 
-      camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+      camera = new THREE.PerspectiveCamera(45, window.innerWidth / 2 / window.innerHeight, 0.1, 100);
       camera.position.set(0, 0, 3);
 
       renderer = new THREE.WebGLRenderer({
         antialias: true,
-        // alpha: true
+        alpha: true
       });
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setSize(window.innerWidth / 2, window.innerHeight);
       document.querySelector(".box").appendChild(renderer.domElement);
 
       // var controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -163,20 +163,17 @@ export default defineComponent({
 
 <style lang="less" scoped>
 .page-box {
-  position: relative;
   display: flex;
   justify-content: flex-start;
   align-items: stretch;
   height: 100vh;
 
   .video-box {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 320px;
+    width: 50%;
     display: flex;
     justify-content: stretch;
     align-items: stretch;
+    position: relative;
 
     #myVideo {
       width: 100%;
@@ -185,10 +182,16 @@ export default defineComponent({
     .canvas {
       position: absolute;
       left: 0;
+      right: 0;
+      bottom: 0;
       top: 0;
-      width: 320px;
-      height: 240px;
+      width: 100%;
+      height: 100%;
     }
+  }
+
+  .box {
+    width: 50%;
   }
 }
 </style>
