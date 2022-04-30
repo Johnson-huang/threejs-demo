@@ -22,12 +22,6 @@ let scene, camera, renderer, cube;
 
 export default defineComponent({
   setup() {
-    // 人脸识别
-    // https://blog.csdn.net/qq_42000039/article/details/111768719
-
-    // 人脸识别 对应 裸眼3D 原理
-    // https://xiaozhuanlan.com/topic/0241985376
-
     const videoRef = ref(null)
     const canvasRef = ref(null)
 
