@@ -1,11 +1,5 @@
 <template>
-  <div class="page-box">
-    <div class="video-box">
-      <video ref="videoRef" id="myVideo" preload autoplay loop muted controls></video>
-      <canvas ref="canvasRef" class="canvas"></canvas>
-    </div>
-    <div class="box"></div>
-  </div>
+  <div class="page-box"></div>
 </template>
 
 <script>
@@ -22,82 +16,21 @@ let scene, camera, renderer, cube;
 
 export default defineComponent({
   setup() {
-    const videoRef = ref(null)
-    const canvasRef = ref(null)
-
-    // 打开视频
-    async function openMedia() {
-      // 是否支持访问用户媒体设备
-      if (!checkGetUserMediaSupport()) {
-        return Promise.reject()
-      }
-
-      // 获取支持的音视频设备
-      // 判断是否有视频输入设备
-      const devicesResult = await checkMediaDevices()
-      if (devicesResult.code === 0 || !devicesResult.data.find(item => item.kind === 'videoinput')) {
-        console.log('checkMediaDevices 错误：', devicesResult)
-        return Promise.reject()
-      }
-
-      // 访问用户媒体设备
-      getUserMedia(
-          {audio: false, video: true},
-          (stream) => {
-            // 设置视频流
-            videoRef.value.srcObject = stream;
-
-            // 设置 canvas 宽高
-            const context = canvasRef.value.getContext('2d')
-            canvasRef.value.width = window.innerWidth / 2
-            canvasRef.value.height = window.innerHeight
-
-            // 设置人脸识别跟踪
-            const tracker = new tracking.ObjectTracker(['face'])
-            tracker.setInitialScale(4);
-            tracker.setStepSize(2);
-            tracker.setEdgesDensity(0.1);
-            trackerTask = tracking.track('#myVideo', tracker, {camera: true})
-
-            tracker.on('track', (event) => {
-              // 清除之前的图形
-              context.clearRect(0, 0, canvasRef.value.width, canvasRef.value.height)
-              event.data.forEach((rect) => {
-                context.strokeStyle = '#a64ceb';
-                context.strokeRect(rect.x, rect.y, rect.width, rect.height);
-                context.font = '11px Helvetica';
-                context.fillStyle = "#fff";
-                context.fillText(`x：${rect.x}px`, rect.x + rect.width + 5, rect.y + 11)
-                context.fillText(`y：${rect.y}px`, rect.x + rect.width + 5, rect.y + 22)
-
-                nextRY = 0.7 + rect.x / 320;
-                nextRX = 0.4 - rect.y / 240;
-              })
-            })
-          },
-          (error) => {
-            console.log(`访问用户媒体设备失败${error.name}, ${error.message}`);
-          }
-      )
-    }
-
     // 初始化 three
     function init() {
       scene = new THREE.Scene();
 
-      camera = new THREE.PerspectiveCamera(45, window.innerWidth / 2 / window.innerHeight, 0.1, 100);
+      camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
       camera.position.set(0, 0, 3);
 
       renderer = new THREE.WebGLRenderer({
         antialias: true,
-        alpha: true
+        // alpha: true
       });
-      renderer.setSize(window.innerWidth / 2, window.innerHeight);
-      document.querySelector(".box").appendChild(renderer.domElement);
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.querySelector(".page-box").appendChild(renderer.domElement);
 
-      // var controls = new THREE.OrbitControls(camera, renderer.domElement);
-
-      const geometry = new THREE.BoxGeometry(.6, .6, .6);
+      const geometry = new THREE.BoxGeometry(1.2, 1.2, 1.2);
       const material = new THREE.MeshStandardMaterial({color: 0x6698CB});
       material.metalness = .44;
       material.roughness = 0.4;
@@ -108,6 +41,24 @@ export default defineComponent({
       addLight();
 
       loop();
+
+      document.querySelector(".page-box").onclick = () => {
+        window.DeviceOrientationEvent.requestPermission()
+            .then(state => {
+              switch (state) {
+                case "granted":
+                  // you can do something
+                  window.addEventListener('deviceorientation', capture_orientation, false);
+                  break;
+                case "denied":
+                  alert("你拒绝了使用陀螺仪");
+                  break;
+                case "prompt":
+                  alert("其他行为");
+                  break;
+              }
+            });
+      }
     }
 
     function addLight() {
@@ -132,66 +83,34 @@ export default defineComponent({
 
     function loop() {
       requestAnimationFrame(loop);
-
-      cube.rotation.x += (nextRX - cube.rotation.x) / 5;
-      cube.rotation.y += (nextRY - cube.rotation.y) / 5;
-
+      cube.rotation.y += 0.01
       renderer.render(scene, camera);
     }
 
-    onMounted(async () => {
-      // 打开视频
-      await openMedia()
+    function capture_orientation(event) {
+      const alpha = event.alpha;
+      const beta = event.beta;
+      const gamma = event.gamma;
+      console.log('Orientation - Alpha: ' + alpha + ', Beta: ' + beta + ', Gamma: ' + gamma);
+
+      cube.rotation.y = gamma / 100;
+      cube.rotation.x = beta / 100;
+    }
+
+    onMounted(() => {
       // 初始化 three
       init()
     })
 
     onUnmounted(() => {
-      if (trackerTask) {
-        // 停止跟踪
-        trackerTask.stop()
-      }
     })
 
-    return {
-      videoRef,
-      canvasRef
-    }
+    return {}
   },
 })
 </script>
 
 <style lang="less" scoped>
 .page-box {
-  display: flex;
-  justify-content: flex-start;
-  align-items: stretch;
-  height: 100vh;
-
-  .video-box {
-    width: 50%;
-    display: flex;
-    justify-content: stretch;
-    align-items: stretch;
-    position: relative;
-
-    #myVideo {
-      width: 100%;
-    }
-
-    .canvas {
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-    }
-  }
-
-  .box {
-    width: 50%;
-  }
 }
 </style>

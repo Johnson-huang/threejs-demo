@@ -95,8 +95,6 @@ export default defineComponent({
       renderer.setSize(window.innerWidth, window.innerHeight);
       document.querySelector(".box").appendChild(renderer.domElement);
 
-      // var controls = new THREE.OrbitControls(camera, renderer.domElement);
-
       const geometry = new THREE.BoxGeometry(.6, .6, .6);
       const material = new THREE.MeshStandardMaterial({color: 0x6698CB});
       material.metalness = .44;
