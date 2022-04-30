@@ -10,6 +10,7 @@
 
 <script>
 import 'tracking'
+import 'tracking/build/data/face.js'
 import {defineComponent, onMounted, ref} from 'vue'
 import {checkGetUserMediaSupport, checkMediaDevices, getUserMedia} from '@/utils/media-devices'
 
@@ -40,23 +41,47 @@ export default defineComponent({
       }
 
       // 访问用户媒体设备
-      // getUserMedia(
-      //     {audio: false, video: true},
-      //     (stream) => {
-      //       videoRef.value.srcObject = stream;
-      //     },
-      //     (error) => {
-      //       console.log(`访问用户媒体设备失败${error.name}, ${error.message}`);
-      //     }
-      // )
+      getUserMedia(
+          {audio: false, video: true},
+          (stream) => {
+            videoRef.value.srcObject = stream;
+
+            // 设置 canvas 宽高
+            // TODO 宽高比例问题待解决
+            const context = canvasRef.value.getContext('2d')
+            canvasRef.value.width = window.innerWidth / 2
+            canvasRef.value.height = window.innerHeight
+
+            // 设置人脸识别跟踪
+            const tracker = new tracking.ObjectTracker(['face'])
+            tracker.setInitialScale(4)
+            tracker.setStepSize(2)
+            tracker.setEdgesDensity(0.1)
+            tracking.track('#myVideo', tracker, {camera: true})
+
+            tracker.on('track', (event) => {
+              // 清除之前的图形
+              context.clearRect(0, 0, canvasRef.value.width, canvasRef.value.height)
+
+              event.data.forEach((rect) => {
+                context.strokeStyle = '#a64ceb'
+                context.strokeRect(rect.x, rect.y, rect.width, rect.height)
+                context.font = '22px Helvetica'
+                context.fillStyle = '#fff'
+                context.fillText(`x：${rect.x}px`, rect.x + rect.width + 5, rect.y + 22)
+                context.fillText(`y：${rect.y}px`, rect.x + rect.width + 5, rect.y + 44)
+              })
+            })
+          },
+          (error) => {
+            console.log(`访问用户媒体设备失败${error.name}, ${error.message}`);
+          }
+      )
     }
 
     onMounted(async () => {
       // 打开视频
       await openMedia()
-
-      // const context = canvasRef.value.getContext('2d')
-      // const tracker = window.tracking.ObjectTracker(['face'])
     })
 
     return {
