@@ -39,11 +39,13 @@ export default defineComponent({
     function init() {
       scene = new THREE.Scene();
 
-      camera = new THREE.PerspectiveCamera(90, document.body.clientWidth / document.body.clientHeight, 0.1, 100);
+      camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 100);
+      // 照相机放在世界原点附近，而不是世界原点上
+      // 因为照相机默认 lookAt 世界原点，自己看自己就没有方向向量了，导致在世界原点上无法旋转
       camera.position.set(0, 0, 0.01);
 
       renderer = new THREE.WebGLRenderer();
-      renderer.setSize(document.body.clientWidth, document.body.clientHeight);
+      renderer.setSize(window.innerWidth, window.innerHeight);
 
       document.querySelector(".page-box").appendChild(renderer.domElement);
 
@@ -77,7 +79,7 @@ export default defineComponent({
       materials.push( new THREE.MeshBasicMaterial( { map: texture_back} ) );
 
       const box = new THREE.Mesh( new THREE.BoxGeometry( 1, 1, 1 ), materials );
-      box.geometry.scale( 1, 1, -1 );
+      box.geometry.scale( 1, 1, -1 ); // 将Z轴正向的面移到Z轴负方向上，产生把面翻转一下的效果
       scene.add(box);
     }
 
