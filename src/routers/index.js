@@ -1,12 +1,15 @@
 import {createRouter, createWebHashHistory} from 'vue-router';
 import Autostereoscopy from "@/routers/autostereoscopy";
+import WebVr from "@/routers/web-vr";
 
 export const allRoutes = [
     {path: '/', component: () => import('@/views/Home.vue'), meta: {title: '首页'}},
     {path: '/car', component: () => import('@/views/Car.vue'), meta: {title: '汽车模型'}},
     {path: '/earth-and-moon', component: () => import('@/views/EarthAndMoon.vue'), meta: {title: '地月环绕'}},
     // 裸眼3D
-    ...Autostereoscopy
+    ...Autostereoscopy,
+    // Web VR
+    ...WebVr
 ]
 
 // 创建路由实例并传递 `routes` 配置

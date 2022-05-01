@@ -26,13 +26,13 @@ export default defineComponent({
       camera.position.set(0, 0, 3);
       // 渲染器
       renderer = new THREE.WebGLRenderer({
-        antialias: true
+        antialias: true // 是否开启反锯齿
       });
       renderer.setSize(window.innerWidth, window.innerHeight);
       // 插入
       document.querySelector('#car-box').appendChild(renderer.domElement);
       // 控制器
-      const controls = new OrbitControls(camera, renderer.domElement);
+      new OrbitControls(camera, renderer.domElement);
       // 加载全部贴图
       loadAllTexture(loadCarModel);
       // 添加灯光
