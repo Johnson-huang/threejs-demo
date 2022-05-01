@@ -49,7 +49,8 @@ export default defineComponent({
 
       document.querySelector(".page-box").appendChild(renderer.domElement);
 
-      useBox();
+      useSphere()
+      // useBox();
       initPoints();
       animate();
 
@@ -57,6 +58,19 @@ export default defineComponent({
       new OrbitControls(camera, renderer.domElement);
     }
 
+    // 使用球体
+    // 需要使用一张全景照片
+    function useSphere(){
+      const sphereGeometry = new THREE.SphereGeometry(1, 50, 50);
+      const texture = new THREE.TextureLoader().load('src/assets/web-vr/images/scene.jpeg');
+      const sphereMaterial = new THREE.MeshBasicMaterial({map: texture});
+      const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+      sphere.geometry.scale( 1, 1, -1 ); // 将Z轴正向的面移到Z轴负方向上，产生把面翻转一下的效果
+      scene.add(sphere);
+    }
+
+    // 使用几何体
+    // 需要 6 张单一方向的照片
     function useBox(){
       const materials = [];
 
