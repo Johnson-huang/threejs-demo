@@ -121,12 +121,21 @@ export default defineComponent({
       requestAnimationFrame(animate);
     }
 
+    function handleResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
     onMounted(() => {
       init();
       animate();
+      window.addEventListener('resize', handleResize)
     })
 
-    onUnmounted(() => {})
+    onUnmounted(() => {
+      window.removeEventListener('resize', handleResize)
+    })
 
     return {}
   },

@@ -7,7 +7,7 @@
 
 <script>
 import * as THREE from 'three'
-import { defineComponent, onMounted } from 'vue'
+import {defineComponent, onMounted, onUnmounted} from 'vue'
 
 let scene = null;
 let camera = null;
@@ -20,7 +20,10 @@ export default defineComponent({
     function init() {
       scene = new THREE.Scene();
       camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-      renderer = new THREE.WebGLRenderer({ alpha: true }); // 背景透明
+      renderer = new THREE.WebGLRenderer({
+        antialias: true, // 是否开启反锯齿
+        alpha: true // 背景透明
+      });
       renderer.setSize( window.innerWidth, window.innerHeight );
       document.querySelector('.canvas').appendChild( renderer.domElement );
       // 几何体
@@ -62,16 +65,22 @@ export default defineComponent({
       scene.add(frontDirLight);
     }
 
+    function handleResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
     onMounted(() => {
       init();
       animate();
       addLight();
 
-      window.addEventListener('resize', function () {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-      })
+      window.addEventListener('resize', handleResize)
+    })
+
+    onUnmounted(() => {
+      window.removeEventListener('resize', handleResize)
     })
 
     return {}
