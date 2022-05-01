@@ -4,7 +4,8 @@
 
 <script>
 /**
- * 利用 css3d-engine 来实现
+ * * 利用 css3d-engine 来实现
+ * ! 目前已经不维护了，局限性较大
  * https://github.com/shrekshrek/css3d-engine
  */
 import {onMounted, onUnmounted, defineComponent} from 'vue'
@@ -63,19 +64,18 @@ export default defineComponent({
 
       initPoints();
 
-      function loop() {
-        angleX += (curMouseX - lastMouseX + lastAngleX - angleX) * 0.3;
-        angleY += (curMouseY - lastMouseY + lastAngleY - angleY) * 0.3;
-
-        s.camera.rotation(angleY, -angleX, 0).updateT();
-        requestAnimationFrame(loop);
-      }
-
       loop();
 
       window.addEventListener("mousedown", mouseDownHandler);
 
       window.addEventListener("mouseup", mouseUpHandler);
+    }
+
+    function loop() {
+      angleX += (curMouseX - lastMouseX + lastAngleX - angleX) * 0.3;
+      angleY += (curMouseY - lastMouseY + lastAngleY - angleY) * 0.3;
+      s.camera.rotation(angleY, -angleX, 0).updateT();
+      requestAnimationFrame(loop);
     }
 
     function mouseDownHandler(evt) {
