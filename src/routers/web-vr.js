@@ -5,8 +5,8 @@ export default [
         component: () => import('@/Layout/Layout.vue'),
         children: [
             {path: 'threejs', component: () => import("@/views/web-vr/Threejs.vue"), meta: {title: 'WebVR方案一：threejs'}},
-            // {path: 'tracking', component: () => import("@/views/autostereoscopy/Tracking.vue"), meta: {title: '裸眼3D方案二：人脸识别'}},
-            // {path: 'gyroscope', component: () => import("@/views/autostereoscopy/Gyroscope.vue"), meta: {title: '裸眼3D方案三：陀螺仪'}},
+            {path: 'css3d', component: () => import("@/views/web-vr/CSS3D.vue"), meta: {title: 'WebVR方案二：CSS3D'}},
+            {path: 'pano2vr', component: () => import("@/views/web-vr/Pano2vr.vue"), meta: {title: 'WebVR方案三：pano2vr'}},
         ]
     }
 ]
