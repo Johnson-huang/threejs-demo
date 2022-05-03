@@ -3,6 +3,7 @@
 
 ## 数据
 - 数据来源：https://overpass-turbo.eu/
+- 道路动画方案：LineDashedMaterial 动态改变 dashSize
 
 ## PS
 ### overpass-turbo 数据导出问题

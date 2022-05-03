@@ -12,24 +12,32 @@ import Stats from 'three/examples/jsm/libs/stats.module'
 import * as GEOLIB from 'geolib';
 import {defineComponent, nextTick, onMounted, onUnmounted, reactive, ref} from 'vue'
 
-let scene, camera, renderer, controls, light0, light1, light2, gh
+let scene, camera, renderer, controls, light0, light1, light2, gh, iR, iR_Line
 let raycaster = new THREE.Raycaster()
 let stats = new Stats()
 let centerPosi = [121.5060129, 31.2388183]
 let MAT_BUILDING = new THREE.MeshPhongMaterial() // 全局建筑材质
-let MAT_ROAD = new THREE.LineBasicMaterial({color: 0x2F9BFF}) // 全局道路材质
+let MAT_ROAD = new THREE.LineBasicMaterial({color: 0x254360}) // 全局道路材质
 let geos_building = []
 let collider_building = [] // 建筑几何体的外壳数组
+let FLAG_ROAD_ANI = true // 是否打开道路动画
+let Animated_Line_Distances = [] // 所有道路的长度
 
 export default defineComponent({
   setup() {
     const state = reactive({})
     const cont = ref(null)
 
-    function Awake() {
+    function awake() {
+      // 组
+      iR = new THREE.Group()
+      iR_Line = new THREE.Group()
+      iR.name = 'Interactive Root'
       // 场景
       scene = new THREE.Scene()
       scene.background = new THREE.Color(0x222222) // 背景设为白色
+      scene.add(iR)
+      scene.add(iR_Line)
       // 相机
       camera = new THREE.PerspectiveCamera(25, window.innerWidth / window.innerHeight, 1, 100)
       camera.position.set(8, 4, 0)
@@ -70,6 +78,7 @@ export default defineComponent({
       renderer.render(scene, camera);
       controls.update()
       stats.update()
+      updateAnimatedLine()
       requestAnimationFrame(update)
     }
 
@@ -117,7 +126,7 @@ export default defineComponent({
         // 所有建筑几何体合成一个网格，实现性能优化
         let mergeGeometry = BufferGeometryUtils.mergeBufferGeometries(geos_building)
         let mesh = new THREE.Mesh(mergeGeometry, MAT_BUILDING)
-        scene.add(mesh)
+        iR.add(mesh)
       })
     }
 
@@ -231,8 +240,47 @@ export default defineComponent({
       let geometry = new THREE.BufferGeometry().setFromPoints(points)
       geometry.rotateZ(Math.PI)
       let line = new THREE.Line(geometry, MAT_ROAD)
+      line.computeLineDistances() // 计算长度
       line.position.y = 0.5
-      scene.add(line)
+      iR.add(line)
+
+      // 动画
+      if (FLAG_ROAD_ANI) {
+        let lineLength = geometry.attributes.lineDistance.array[geometry.attributes.lineDistance.count - 1]
+        // 如果太短就不生成动画了
+        if (lineLength > 0.8) {
+          let aniLine = addAnimatedLine(geometry, lineLength)
+          iR_Line.add(aniLine)
+        }
+      }
+    }
+
+    // 添加道路动画
+    function addAnimatedLine(geometry, length) {
+      let animatedLine = new THREE.Line(geometry, new THREE.LineDashedMaterial({color: 0x00FFFF}))
+      animatedLine.material.dashSize = 0
+      animatedLine.material.gapSize = 1000
+      animatedLine.position.y = 0.5
+      animatedLine.material.transparent = true
+      Animated_Line_Distances.push(length)
+      return animatedLine
+    }
+
+    // 更新道路动画
+    function updateAnimatedLine() {
+      if (iR_Line.children <= 0) return
+      for (let i = 0; i < iR_Line.children.length; i++) {
+        let line = iR_Line.children[i]
+        let dash = parseInt(line.material.dashSize) // 当前状态
+        let length = parseInt(Animated_Line_Distances[i])
+        if (dash > length) {
+          line.material.dashSize = 0
+          line.material.opacity = 1
+        } else {
+          line.material.dashSize += 0.004
+          line.material.opacity = line.material.opacity > 0 ? line.material.opacity - 0.002 : 1
+        }
+      }
     }
 
     // 点击选择
@@ -256,7 +304,7 @@ export default defineComponent({
     }
 
     onMounted(() => {
-      Awake()
+      awake()
       onWindowResize()
       window.addEventListener('resize', onWindowResize)
       window.addEventListener('mousedown', onMouseDown)
