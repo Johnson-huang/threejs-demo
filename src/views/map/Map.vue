@@ -12,7 +12,7 @@ import {defineComponent, onMounted, onUnmounted, reactive, ref} from 'vue'
 import {getRhumbLineBearing} from "geolib";
 
 let scene, camera, renderer, controls, light0, light1, light2, gh
-let centerPosi = [12.5132783, 41.9042869]
+let centerPosi = [121.5060129, 31.2388183]
 let MAT_BUILDING = new THREE.MeshPhongMaterial() // 全局材质
 
 export default defineComponent({
@@ -71,10 +71,9 @@ export default defineComponent({
 
     // 获取数据
     function getGeoJson() {
-      fetch('src/data/map.geojson')
+      fetch('src/data/shanghai.geojson')
         .then((res) => res.json())
         .then((res) => {
-          console.log(res, 123)
           loadBuilding(res)
         })
     }
@@ -86,12 +85,10 @@ export default defineComponent({
       for (let i = 0; i < features.length; i++) {
         let fel = features[i]
         // 有问题的数据
-        // console.log(fel['properties'])
         if (!fel['properties']) return
-        // if (fel.properties['building']) {
-          addBuilding(fel.geometry.coordinates, fel.properties)
-          // addBuilding(fel.geometry.coordinates, fel.properties, fel.properties['building:levels'])
-        // }
+        if (fel.properties['building']) {
+          addBuilding(fel.geometry.coordinates, fel.properties, fel.properties['building:levels'])
+        }
       }
     }
 
