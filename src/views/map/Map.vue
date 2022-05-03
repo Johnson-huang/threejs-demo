@@ -7,14 +7,18 @@
 <script>
 import * as THREE from 'three'
 import {MapControls} from 'three/examples/jsm/controls/OrbitControls.js'
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import Stats from 'three/examples/jsm/libs/stats.module'
 import * as GEOLIB from 'geolib';
-import {defineComponent, onMounted, onUnmounted, reactive, ref} from 'vue'
+import {defineComponent, nextTick, onMounted, onUnmounted, reactive, ref} from 'vue'
 
 let scene, camera, renderer, controls, light0, light1, light2, gh
+let raycaster = new THREE.Raycaster()
 let stats = new Stats()
 let centerPosi = [121.5060129, 31.2388183]
 let MAT_BUILDING = new THREE.MeshPhongMaterial() // 全局材质
+let geos_building = []
+let collider_building = [] // 建筑几何体的外壳数组
 
 export default defineComponent({
   setup() {
@@ -95,6 +99,13 @@ export default defineComponent({
           addBuilding(fel.geometry.coordinates, fel.properties, fel.properties['building:levels'])
         }
       }
+
+      nextTick(() => {
+        // 所有建筑几何体合成一个网格，实现性能优化
+        let mergeGeometry = BufferGeometryUtils.mergeBufferGeometries(geos_building)
+        let mesh = new THREE.Mesh(mergeGeometry, MAT_BUILDING)
+        scene.add(mesh)
+      })
     }
 
     // 添加建筑
@@ -129,8 +140,31 @@ export default defineComponent({
       })
       geometry.rotateX(Math.PI / 2)
       geometry.rotateZ(Math.PI)
-      let mesh = new THREE.Mesh(geometry, MAT_BUILDING)
-      scene.add(mesh)
+      geos_building.push(geometry)
+
+      let helper = genHelper(geometry)
+      if (helper) {
+        helper.name = info['name'] ? info['name'] : 'Building'
+        helper.info = info
+        collider_building.push(helper)
+      }
+    }
+
+    // 避免多个几何体合成一个网格之后，无法交互区分（例如点击）
+    function genHelper(geometry) {
+      if (!geometry.boundingBox) {
+        geometry.computeBoundingBox()
+      }
+      let box3 = geometry.boundingBox
+
+      // 错误数据处理
+      if (!isFinite(box3.max.x)) {
+        return false
+      }
+
+      let helper = new THREE.Box3Helper(box3, 0xffff00)
+      helper.updateMatrixWorld()
+      return helper
     }
 
     // 创建建筑平面图形
@@ -167,10 +201,31 @@ export default defineComponent({
       return [-x / 100, -y / 100]
     }
 
+    // 点击选择
+    function fire(mouse) {
+      raycaster.setFromCamera(mouse, camera)
+      let intersects = raycaster.intersectObjects(collider_building, true)
+      if (intersects.length > 0) {
+        return intersects[0].object
+      } else {
+        return false
+      }
+    }
+
+    function onMouseDown(evt) {
+      let mouse = {
+        x: (evt.clientX / window.innerWidth) * 2 - 1,
+        y: -(evt.clientY / window.innerHeight) * 2 - 1,
+      }
+      let hitted = fire(mouse)
+      console.log('点击的建筑：', hitted)
+    }
+
     onMounted(() => {
       Awake()
       onWindowResize()
       window.addEventListener('resize', onWindowResize)
+      window.addEventListener('mousedown', onMouseDown)
     })
 
     onUnmounted(() => {
