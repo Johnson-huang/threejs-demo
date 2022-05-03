@@ -16,7 +16,8 @@ let scene, camera, renderer, controls, light0, light1, light2, gh
 let raycaster = new THREE.Raycaster()
 let stats = new Stats()
 let centerPosi = [121.5060129, 31.2388183]
-let MAT_BUILDING = new THREE.MeshPhongMaterial() // 全局材质
+let MAT_BUILDING = new THREE.MeshPhongMaterial() // 全局建筑材质
+let MAT_ROAD = new THREE.LineBasicMaterial({color: 0x2F9BFF}) // 全局道路材质
 let geos_building = []
 let collider_building = [] // 建筑几何体的外壳数组
 
@@ -95,8 +96,20 @@ export default defineComponent({
         let fel = features[i]
         // 有问题的数据
         if (!fel['properties']) return
-        if (fel.properties['building']) {
-          addBuilding(fel.geometry.coordinates, fel.properties, fel.properties['building:levels'])
+
+        let info = fel.properties
+
+        if (info['building']) { // 建筑
+          addBuilding(fel.geometry.coordinates, info, info['building:levels'])
+        } else if (info['highway']) { // 道路
+          if (
+              fel.geometry.type === 'LineString' &&
+              info['highway'] !== 'pedestrian' &&
+              info['highway'] !== 'footway' &&
+              info['highway'] !== 'path'
+          ) {
+            addRoad(fel.geometry.coordinates, info)
+          }
         }
       }
 
@@ -199,6 +212,27 @@ export default defineComponent({
       let y = centerPosi[1] + (dis * Math.sin(bearing * Math.PI / 180))
       // 做一个简单的比例缩放
       return [-x / 100, -y / 100]
+    }
+
+    // 添加道路
+    function addRoad(data, info) {
+      let points = []
+      for (let i = 0; i < data.length; i++) {
+        // 错误数据兼容
+        if (!data[0][1]) return
+        let el = data[i]
+        if (!el[0] || !el[i]) return
+
+        let elp = [el[0], el[1]]
+        elp = GPSRelativePosition([elp[0], elp[1]], centerPosi)
+
+        points.push(new THREE.Vector3(elp[0], 0.5, elp[1]))
+      }
+      let geometry = new THREE.BufferGeometry().setFromPoints(points)
+      geometry.rotateZ(Math.PI)
+      let line = new THREE.Line(geometry, MAT_ROAD)
+      line.position.y = 0.5
+      scene.add(line)
     }
 
     // 点击选择
