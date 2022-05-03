@@ -8,6 +8,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "geolib": "^3.3.3",
     "normalize.css": "^8.0.1",
     "three": "^0.139.2",
     "tracking": "^1.1.3",

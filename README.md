@@ -7,6 +7,7 @@
 ### 3D 相关技术栈
 - 3D场景：threejs 139
 - 人脸识别：tracking
+- 经纬度坐标处理：geolib
 
 ### 其他技术栈
 - Vue 3.x
