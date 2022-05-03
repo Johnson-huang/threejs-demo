@@ -7,11 +7,12 @@
 <script>
 import * as THREE from 'three'
 import {MapControls} from 'three/examples/jsm/controls/OrbitControls.js'
+import Stats from 'three/examples/jsm/libs/stats.module'
 import * as GEOLIB from 'geolib';
 import {defineComponent, onMounted, onUnmounted, reactive, ref} from 'vue'
-import {getRhumbLineBearing} from "geolib";
 
 let scene, camera, renderer, controls, light0, light1, light2, gh
+let stats = new Stats()
 let centerPosi = [121.5060129, 31.2388183]
 let MAT_BUILDING = new THREE.MeshPhongMaterial() // 全局材质
 
@@ -52,6 +53,9 @@ export default defineComponent({
       controls.screenSpacePanning = false
       controls.maxDistance = 800
       controls.update()
+      // FPS 性能面板
+      cont.value.appendChild(stats.domElement)
+      // 动画
       update()
       // 数据加载
       getGeoJson()
@@ -60,6 +64,7 @@ export default defineComponent({
     function update() {
       renderer.render(scene, camera);
       controls.update()
+      stats.update()
       requestAnimationFrame(update)
     }
 
@@ -94,24 +99,38 @@ export default defineComponent({
 
     // 添加建筑
     function addBuilding(data, info, height = 1) {
+      let shape, geometry
+      let holes = []
+
       for (let i = 0; i < data.length; i++) {
         let el = data[i]
-        let shape = genShape(el, centerPosi)
-        let geometry = genGeometry(shape, {
-          // steps: 2,
-          curveSegments: 1,
-          depth: 0.05 * height,
-          bevelEnabled: false, // 是否需要棱角
-          // bevelThickness: 1,
-          // bevelSize: 1,
-          // bevelOffset: 0,
-          // bevelSegments: 1
-        })
-        geometry.rotateX(Math.PI / 2)
-        geometry.rotateZ(Math.PI)
-        let mesh = new THREE.Mesh(geometry, MAT_BUILDING)
-        scene.add(mesh)
+
+        if (i === 0) {
+          shape = genShape(el, centerPosi)
+        } else {
+          holes.push(genShape(el, centerPosi))
+        }
       }
+
+      // 这里 shape.holes = holes 似乎没有效果
+      for (let i = 0; i < holes.length; i++) {
+        shape.holes.push(holes[i])
+      }
+
+      geometry = genGeometry(shape, {
+        // steps: 2,
+        curveSegments: 1,
+        depth: 0.05 * height,
+        bevelEnabled: false, // 是否需要棱角
+        // bevelThickness: 1,
+        // bevelSize: 1,
+        // bevelOffset: 0,
+        // bevelSegments: 1
+      })
+      geometry.rotateX(Math.PI / 2)
+      geometry.rotateZ(Math.PI)
+      let mesh = new THREE.Mesh(geometry, MAT_BUILDING)
+      scene.add(mesh)
     }
 
     // 创建建筑平面图形
