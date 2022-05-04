@@ -9,16 +9,32 @@ import * as THREE from 'three'
 import {MapControls} from 'three/examples/jsm/controls/OrbitControls.js'
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import Stats from 'three/examples/jsm/libs/stats.module'
+import {Water} from 'three/examples/jsm/objects/Water.js'
 import * as GEOLIB from 'geolib';
 import {defineComponent, nextTick, onMounted, onUnmounted, reactive, ref} from 'vue'
 
-let scene, camera, renderer, controls, light0, light1, light2, gh, iR, iR_Line
+let scene, camera, renderer, controls, light0, light1, light2, gh, iR, iR_Line, iR_Water;
 let raycaster = new THREE.Raycaster()
 let stats = new Stats()
 let centerPosi = [121.5060129, 31.2388183]
+// 材质
 let MAT_BUILDING = new THREE.MeshPhongMaterial() // 全局建筑材质
 let MAT_ROAD = new THREE.LineBasicMaterial({color: 0x254360}) // 全局道路材质
-let geos_building = []
+let MAT_WATER_NORMAL = new THREE.TextureLoader().load('src/assets/map/textures/water.jpeg', (texture) => {
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping
+}) // 全局水域材质
+let MAT_WATER = {
+  textureWidth: 512,
+  textureHeight: 512,
+  waterNormals: MAT_WATER_NORMAL,
+  sunDirection: new THREE.Vector3(),
+  sunColor: 0xffffff,
+  waterColor: 0xA6C8FA,
+  distortionScale: 3.7,
+  fog: false
+}
+// 几何体
+let geos_building = [] // 建筑几何体数组
 let collider_building = [] // 建筑几何体的外壳数组
 let FLAG_ROAD_ANI = true // 是否打开道路动画
 let Animated_Line_Distances = [] // 所有道路的长度
@@ -32,12 +48,14 @@ export default defineComponent({
       // 组
       iR = new THREE.Group()
       iR_Line = new THREE.Group()
+      iR_Water = new THREE.Group()
       iR.name = 'Interactive Root'
       // 场景
       scene = new THREE.Scene()
       scene.background = new THREE.Color(0x222222) // 背景设为白色
       scene.add(iR)
       scene.add(iR_Line)
+      scene.add(iR_Water)
       // 相机
       camera = new THREE.PerspectiveCamera(25, window.innerWidth / window.innerHeight, 1, 100)
       camera.position.set(8, 4, 0)
@@ -79,6 +97,7 @@ export default defineComponent({
       controls.update()
       stats.update()
       updateAnimatedLine()
+      updateWater()
       requestAnimationFrame(update)
     }
 
@@ -90,7 +109,7 @@ export default defineComponent({
 
     // 获取数据
     function getGeoJson() {
-      fetch('src/data/shanghai.geojson')
+      fetch('src/assets/map/data/shanghai.geojson')
         .then((res) => res.json())
         .then((res) => {
           loadBuilding(res)
@@ -127,7 +146,63 @@ export default defineComponent({
         let mergeGeometry = BufferGeometryUtils.mergeBufferGeometries(geos_building)
         let mesh = new THREE.Mesh(mergeGeometry, MAT_BUILDING)
         iR.add(mesh)
+        // 加载水域
+        loadWaters()
       })
+    }
+
+    // 创建水域
+    function loadWaters() {
+      fetch('src/assets/map/data/shanghai_water.geojson')
+          .then((res) => res.json())
+          .then((res) => {
+            let features = res.features
+            for (let i = 0; i < features.length; i++) {
+              let fel = features[i]
+              if (fel.properties['natural'] === 'water' && fel.geometry.type === 'Polygon') {
+                addWater(fel.geometry.coordinates, fel.properties)
+              }
+            }
+          })
+    }
+
+    // 添加水域
+    function addWater(data, info) {
+      let shape, geometry
+      let holes = []
+
+      for (let i = 0; i < data.length; i++) {
+        let el = data[i]
+
+        if (i === 0) {
+          shape = genShape(el, centerPosi)
+        } else {
+          holes.push(genShape(el, centerPosi))
+        }
+      }
+
+      // 这里 shape.holes = holes 似乎没有效果
+      for (let i = 0; i < holes.length; i++) {
+        shape.holes.push(holes[i])
+      }
+
+      geometry = genGeometry(shape, {
+        curveSegments: 1,
+        depth: 0.1,
+        bevelEnabled: false, // 是否需要棱角
+      })
+      geometry.rotateX(Math.PI / 2)
+      geometry.rotateZ(Math.PI)
+
+      let water = new Water(geometry, MAT_WATER)
+      iR_Water.add(water)
+    }
+
+    // 水域动画
+    function updateWater() {
+      for (let i = 0; i < iR_Water.children.length; i++) {
+        iR_Water.children[i].material.uniforms[ 'time' ].value += 1.0 / 700.0;
+      }
     }
 
     // 添加建筑
