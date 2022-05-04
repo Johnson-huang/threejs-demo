@@ -1,6 +1,7 @@
 import {createRouter, createWebHashHistory} from 'vue-router';
 import Autostereoscopy from "@/routers/autostereoscopy";
 import WebVr from "@/routers/web-vr";
+import map from "@/routers/map";
 
 export const allRoutes = [
     {path: '/', component: () => import('@/views/Home.vue'), meta: {title: '首页'}},
@@ -9,7 +10,9 @@ export const allRoutes = [
     // 裸眼3D
     ...Autostereoscopy,
     // Web VR
-    ...WebVr
+    ...WebVr,
+    // 地图
+    ...map
 ]
 
 // 创建路由实例并传递 `routes` 配置
