@@ -29,10 +29,12 @@
 - [x] 地图
   - [x] 建筑点击事件
   - [x] 道路动画
+  - [x] 水域动画
   - [ ] 地形模拟
 
 ## 地图
-- 数据来源：https://overpass-turbo.eu/
+- 城市道路水域数据来源：https://overpass-turbo.eu/
+- 地形高程数据来源：NASA SRTM https://www.cnsageo.com
 - 道路动画方案：LineDashedMaterial 动态改变 dashSize
 - 性能优化：BufferGeometryUtils.mergeBufferGeometries + Box3Helper
 

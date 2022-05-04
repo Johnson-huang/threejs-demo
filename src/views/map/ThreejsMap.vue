@@ -97,7 +97,8 @@ export default defineComponent({
       controls.update()
       stats.update()
       updateAnimatedLine()
-      updateWater()
+      // 水域动画
+      // updateWater()
       requestAnimationFrame(update)
     }
 
@@ -147,7 +148,7 @@ export default defineComponent({
         let mesh = new THREE.Mesh(mergeGeometry, MAT_BUILDING)
         iR.add(mesh)
         // 加载水域
-        loadWaters()
+        // loadWaters()
       })
     }
 
