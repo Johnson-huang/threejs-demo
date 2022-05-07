@@ -39,9 +39,25 @@ export default defineComponent({
       scene.add(aLight);
 
       // load
-      const loader = new FBXLoader('src/assets/web-ar/dancer_girl_fbx/source/Wave Hip Hop Dance (1).fbx', (obj) => {
-        // obj.traverse((child) => {})
-        scene.add(obj)
+      const loader = new FBXLoader()
+      loader.load('src/assets/web-ar/dancer_girl_fbx/source/Wave Hip Hop Dance.fbx', (object) => {
+        console.log(object, 123)
+        object.traverse( function ( child ) {
+          const material = new THREE.MeshPhongMaterial({
+            map: new THREE.TextureLoader().load('src/assets/web-ar/dancer_girl_fbx/textures/Sasha3_Coat_BaseColor.tga.png')
+          })
+          child.material = material
+
+          if ( child.isMesh ) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+          }
+        });
+        // object.rotation.y = Math.PI/2;
+        //object.rotation.x = -Math.PI/2 - Math.PI/12;
+        object.position.set(0, 0, -100);
+        object.scale.set(.3, .3, .3);
+        scene.add( object );
       })
 
       // 渲染器
@@ -88,5 +104,7 @@ export default defineComponent({
 </script>
 
 <style lang="less" scoped>
-.page-box {}
+.page-box {
+  background: #000;
+}
 </style>
