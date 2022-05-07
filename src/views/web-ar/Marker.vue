@@ -4,6 +4,7 @@
 
 <script>
 import * as THREE from 'three'
+import {FBXLoader} from 'three/examples/jsm/loaders/FBXLoader.js'
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js'
 import {reactive, onMounted, onUnmounted, toRefs, defineComponent} from 'vue'
 
@@ -36,6 +37,12 @@ export default defineComponent({
       const aLight = new THREE.AmbientLight(0xffffff);
       aLight.intensity = 0.3;
       scene.add(aLight);
+
+      // load
+      const loader = new FBXLoader('src/assets/web-ar/dancer_girl_fbx/source/Wave Hip Hop Dance (1).fbx', (obj) => {
+        // obj.traverse((child) => {})
+        scene.add(obj)
+      })
 
       // 渲染器
       renderer = new THREE.WebGLRenderer({

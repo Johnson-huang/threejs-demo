@@ -4,7 +4,7 @@ export default [
         meta: {title: 'WebAR'},
         component: () => import('@/Layout/Layout.vue'),
         children: [
-            {path: 'marker', component: () => import("@/views/web-vr/Threejs.vue"), meta: {title: 'WebAR 标记'}}
+            {path: 'marker', component: () => import("@/views/web-ar/Marker.vue"), meta: {title: 'WebAR 标记'}}
         ]
     }
 ]
