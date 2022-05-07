@@ -38,6 +38,25 @@
 - 道路动画方案：LineDashedMaterial 动态改变 dashSize
 - 性能优化：BufferGeometryUtils.mergeBufferGeometries + Box3Helper
 
+### overpass api 数据查询语句
+```
+// 查询建筑、道路
+[out:json][timeout:30];(
+way["building"]({{bbox}});
+relation["building"]["type"="multipolygon"]({{bbox}});
+way["highway"]({{bbox}});
+);out;>;out qt;
+
+// 查询水域
+[out:json][timeout:30];(
+way["natural"="water"]({{bbox}});
+relation["natural"="water"]({{bbox}});
+);
+out body;
+>;
+out skel qt;
+```
+
 ## 问题解决
 ### overpass-turbo 数据导出报错
 问题：overpass-turbo 中 export 报错  
