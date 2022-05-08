@@ -15,8 +15,6 @@ let renderer = null;
 let gh = null;
 let mixer = null; // 动画混合
 let stats = new Stats()
-let animations = null;
-let currentAnimationName = null;
 
 class AnimationMixer {
   constructor(model, animations) {
@@ -102,14 +100,15 @@ export default defineComponent({
 
     function handleClick() {
       // 替换动画 name
-      const index = animations.findIndex(item => item.name === currentAnimationName)
+      const index = mixer.animations.findIndex(item => item.name === mixer.clip)
       let newIndex = 0
-      if (index === animations.length - 1) {
+      if (index === mixer.animations.length - 1) {
         newIndex = 0
       } else {
         newIndex = index + 1
       }
       // 更新
+      mixer.play(mixer.animations[newIndex].name)
     }
 
     onMounted(() => {
@@ -131,19 +130,16 @@ export default defineComponent({
         object.position.set(0, 0, 0);
         object.scale.set(.1, .1, .1);
 
-        // 当前动画
-        animations = object.animations;
-        currentAnimationName = object.animations[0].name
-
         // 初始化
         init();
         loop();
-        window.addEventListener('resize', handleResize);
-        window.addEventListener('click', handleClick);
 
         // 动画
-        mixer = new AnimationMixer(object, animations)
-        mixer.play(currentAnimationName)
+        mixer = new AnimationMixer(object, object.animations)
+        mixer.play(object.animations[0].name)
+
+        window.addEventListener('resize', handleResize);
+        window.addEventListener('click', handleClick);
 
         scene.add( object );
       })
