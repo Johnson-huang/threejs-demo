@@ -3,6 +3,7 @@
 </template>
 
 <script>
+import * as THREEX from '@ar-js-org/ar.js/three.js/build/ar-threex'
 import * as THREE from 'three'
 import Stats from 'three/examples/jsm/libs/stats.module'
 import {FBXLoader} from 'three/examples/jsm/loaders/FBXLoader.js'
@@ -41,7 +42,7 @@ class AnimationMixer {
 }
 
 // // AR.js 初始化
-// let arToolkitSource = new THREEx.ArTookitSource({
+// let arToolkitSource = new THREEX.ArTookitSource({
 //   sourceType: 'webcam'
 // })
 //
@@ -56,8 +57,8 @@ class AnimationMixer {
 // })
 //
 // // 初始化 context
-// let arToolkitContext = new THREEx.ArTookitContext({
-//   cameraParametersUrl: THREEx.ArTookitContext.baseUrl + '',
+// let arToolkitContext = new THREEX.ArTookitContext({
+//   cameraParametersUrl: THREEX.ArTookitContext.baseUrl + '',
 //   // 单摄像头
 //   detectionMode: 'mono'
 // })
@@ -124,7 +125,7 @@ export default defineComponent({
     function handleClick() {
       // 替换动画 name
       const index = mixer.animations.findIndex(item => item.name === mixer.clip)
-      let newIndex = 0
+      let newIndex;
       if (index === mixer.animations.length - 1) {
         newIndex = 0
       } else {
@@ -140,10 +141,9 @@ export default defineComponent({
       loader.load('src/assets/web-ar/dancer_girl_fbx/source/Wave Hip Hop Dance.fbx', (object) => {
         console.log(object)
         object.traverse( function ( child ) {
-          const material = new THREE.MeshPhongMaterial({
+          child.material = new THREE.MeshPhongMaterial({
             map: new THREE.TextureLoader().load('src/assets/web-ar/dancer_girl_fbx/textures/Sasha3_Coat_BaseColor.tga.png')
           })
-          child.material = material
 
           if ( child.isMesh ) {
             child.castShadow = true;

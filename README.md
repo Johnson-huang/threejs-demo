@@ -8,7 +8,7 @@
 - 3D：threejs
 - 人脸识别：tracking
 - 坐标处理：geolib
-- AR：AR.js
+- AR：@ar-js-org/ar.js
 
 ### 基础技术栈
 - Vue 3.x
