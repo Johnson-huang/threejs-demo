@@ -5,10 +5,11 @@
 ## 技术栈
 
 ### 3D 相关技术栈
-- 3D场景：threejs
+- 3D：threejs
 - 人脸识别：tracking
-- 经纬度坐标处理：geolib
+- 坐标处理：geolib
 - AR：AR.js
+- HTTPS：Canddy2 vite-plugin-mkcert + mkcert
 
 ### 其他技术栈
 - Vue 3.x
@@ -26,11 +27,11 @@
 - [x] WebVR 全景看房
   - [x] 球体方案
   - [x] 正方体方案
-  - [x] 信息点点击事件
+  - [x] 全景点击
 - [x] WebAR
-  - [x] 标记
-  - [ ] 图像
-  - [ ] 地理位置
+  - [x] 标记方案
+  - [ ] 图像方案
+  - [ ] 地理位置方案
 - [x] 地图
   - [x] 建筑点击事件
   - [x] 道路动画
@@ -62,7 +63,6 @@ out body;
 out skel qt;
 ```
 
-## 问题解决
 ### overpass-turbo 数据导出报错
 问题：overpass-turbo 中 export 报错  
 解决：将 chrome 语音设置为<font color="#dd0000">**英文**</font>，再进行 export
@@ -73,3 +73,34 @@ out skel qt;
 解决：  
 - 使用<font color="#dd0000">**墨卡托投影算法**</font>，很准，但是极耗性能
 - 使用 geolib 库来进行简易转换，准确度降低，性能消耗也减低
+
+## 启用 HTTPS 开发服务器
+### mkcert 安装
+#### windows
+```angular2html
+// 使用 PowerShell，修改命令执行策略
+Set-ExecutionPolicy -ExecutionPolicy Bypass // 修改命令执行策略
+
+// 使用 choco 安装 mkcert
+choco install mkcert
+
+// 查看是否安装成功
+mkcert --version
+
+// 安装CA证书
+mkcert -install
+
+// 生成自签证书，产出目录在当前 pwd 下
+mkcert localhost
+
+// 修改自签证书文件后缀
+localhost.pem -> localhost.crt
+
+// 执行 localhost.crt，安装服务端证书
+当前用户 受信任的根证书颁布机构
+
+// 查看服务端证书路径
+mkcert -CAROOT
+
+// 项目中使用服务端证书
+```

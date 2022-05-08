@@ -16,6 +16,7 @@ let gh = null;
 let mixer = null; // 动画混合
 let stats = new Stats()
 
+// 模型动画
 class AnimationMixer {
   constructor(model, animations) {
     this.clock = new THREE.Clock();
@@ -38,6 +39,28 @@ class AnimationMixer {
     this.mixer.update(delta);
   }
 }
+
+// // AR.js 初始化
+// let arToolkitSource = new THREEx.ArTookitSource({
+//   sourceType: 'webcam'
+// })
+//
+// arToolkitSource.init(() => {
+//   setTimeout(() => {
+//     arToolkitSource.onResizeElement()
+//     arToolkitSource.copyElementSizeTo(renderer.domElement)
+//     if (arToolkitSource.arController !== null) {
+//       arToolkitSource.copyElementSizeTo(arToolkitSource.arController.canvas)
+//     }
+//   }, 2000)
+// })
+//
+// // 初始化 context
+// let arToolkitContext = new THREEx.ArTookitContext({
+//   cameraParametersUrl: THREEx.ArTookitContext.baseUrl + '',
+//   // 单摄像头
+//   detectionMode: 'mono'
+// })
 
 export default defineComponent({
   setup() {
