@@ -4,6 +4,7 @@
 
 <script>
 import * as THREE from 'three'
+import Stats from 'three/examples/jsm/libs/stats.module'
 import {FBXLoader} from 'three/examples/jsm/loaders/FBXLoader.js'
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js'
 import {reactive, onMounted, onUnmounted, toRefs, defineComponent} from 'vue'
@@ -13,6 +14,9 @@ let camera = null;
 let renderer = null;
 let gh = null;
 let mixer = null; // 动画混合
+let stats = new Stats()
+let animations = null;
+let currentAnimationName = null;
 
 class AnimationMixer {
   constructor(model, animations) {
@@ -75,6 +79,8 @@ export default defineComponent({
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.shadowMap.enabled = true;
       document.querySelector('.page-box').appendChild(renderer.domElement);
+      // FPS 性能面板
+      document.querySelector('.page-box').appendChild(stats.domElement)
 
       // 绑定控制和摄像头
       new OrbitControls(camera, renderer.domElement);
@@ -83,6 +89,7 @@ export default defineComponent({
     // 循环
     function loop() {
       mixer && mixer.update()
+      stats.update()
       renderer.render(scene, camera);
       requestAnimationFrame(loop);
     }
@@ -93,11 +100,23 @@ export default defineComponent({
       renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
+    function handleClick() {
+      // 替换动画 name
+      const index = animations.findIndex(item => item.name === currentAnimationName)
+      let newIndex = 0
+      if (index === animations.length - 1) {
+        newIndex = 0
+      } else {
+        newIndex = index + 1
+      }
+      // 更新
+    }
+
     onMounted(() => {
       // load
       const loader = new FBXLoader()
       loader.load('src/assets/web-ar/dancer_girl_fbx/source/Wave Hip Hop Dance.fbx', (object) => {
-        console.log(object, 123)
+        console.log(object)
         object.traverse( function ( child ) {
           const material = new THREE.MeshPhongMaterial({
             map: new THREE.TextureLoader().load('src/assets/web-ar/dancer_girl_fbx/textures/Sasha3_Coat_BaseColor.tga.png')
@@ -112,13 +131,19 @@ export default defineComponent({
         object.position.set(0, 0, 0);
         object.scale.set(.1, .1, .1);
 
+        // 当前动画
+        animations = object.animations;
+        currentAnimationName = object.animations[0].name
+
+        // 初始化
         init();
         loop();
-        window.addEventListener('resize', handleResize)
+        window.addEventListener('resize', handleResize);
+        window.addEventListener('click', handleClick);
 
         // 动画
-        mixer = new AnimationMixer(object, object.animations)
-        mixer.play(object.animations[0].name)
+        mixer = new AnimationMixer(object, animations)
+        mixer.play(currentAnimationName)
 
         scene.add( object );
       })
@@ -126,6 +151,7 @@ export default defineComponent({
 
     onUnmounted(() => {
       window.removeEventListener('resize', handleResize)
+      window.removeEventListener('click', handleClick)
     })
 
     return {
