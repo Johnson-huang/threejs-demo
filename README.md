@@ -9,15 +9,17 @@
 - 人脸识别：tracking
 - 坐标处理：geolib
 - AR：AR.js
-- HTTPS：Canddy2 vite-plugin-mkcert + mkcert
 
-### 其他技术栈
+### 基础技术栈
 - Vue 3.x
 - Vue-route 4.x
 - Vite 2.x
 - less
 
-## 场景
+### 部署相关
+- HTTPS：mkcert
+
+## 场景实现
 - [x] 汽车 3D 展厅
   - [x] 点击更换颜色
   - [ ] 开关门
@@ -74,10 +76,9 @@ out skel qt;
 - 使用<font color="#dd0000">**墨卡托投影算法**</font>，很准，但是极耗性能
 - 使用 geolib 库来进行简易转换，准确度降低，性能消耗也减低
 
-## 启用 HTTPS 开发服务器
-### mkcert 安装
-#### windows
-```angular2html
+## 使用 mkcert 开启 HTTPS 开发服务器
+### windows
+```text
 // 使用 PowerShell，修改命令执行策略
 Set-ExecutionPolicy -ExecutionPolicy Bypass // 修改命令执行策略
 
@@ -93,14 +94,14 @@ mkcert -install
 // 生成自签证书，产出目录在当前 pwd 下
 mkcert localhost
 
-// 修改自签证书文件后缀
-localhost.pem -> localhost.crt
-
-// 执行 localhost.crt，安装服务端证书
-当前用户 受信任的根证书颁布机构
-
 // 查看服务端证书路径
 mkcert -CAROOT
 
-// 项目中使用服务端证书
+// 项目中使用自签证书
+server: {
+  https: {
+    cert: fs.readFileSync(path.join(__dirname, 'src/ssl/win.pem')),
+    key: fs.readFileSync(path.join(__dirname, 'src/ssl/win-key.pem'))
+  }
+}
 ```

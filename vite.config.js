@@ -12,10 +12,9 @@ export default defineConfig({
     }
   },
   server: {
-    host: '0.0.0.0',
     https: {
-      cert: fs.readFileSync(path.join(__dirname, 'src/ssl/rootCA.pem')),
-      key: fs.readFileSync(path.join(__dirname, 'src/ssl/rootCA-key.pem'))
+      cert: fs.readFileSync(path.join(__dirname, 'src/ssl/win.pem')),
+      key: fs.readFileSync(path.join(__dirname, 'src/ssl/win-key.pem'))
     }
   }
 })
