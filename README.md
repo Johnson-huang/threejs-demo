@@ -105,3 +105,10 @@ server: {
   }
 }
 ```
+
+## AR
+- 摄像机参数文件
+  - 使用 ar.js 自带的 THREEX.ArTookitContext.baseUrl + './data/data/camera_para.dat'
+  - 校准摄像机产生摄像机参数文件：https://artoolkit.org/documentation/doku.php?id=2_Configuration:config_camera_calibration
+- 绑定二维码的标识文件路径
+  - 使用 artoolkit 的训练方法

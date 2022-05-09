@@ -41,42 +41,60 @@ class AnimationMixer {
   }
 }
 
-// // AR.js 初始化
-// let arToolkitSource = new THREEX.ArTookitSource({
-//   sourceType: 'webcam'
-// })
-//
-// arToolkitSource.init(() => {
-//   setTimeout(() => {
-//     arToolkitSource.onResizeElement()
-//     arToolkitSource.copyElementSizeTo(renderer.domElement)
-//     if (arToolkitSource.arController !== null) {
-//       arToolkitSource.copyElementSizeTo(arToolkitSource.arController.canvas)
-//     }
-//   }, 2000)
-// })
-//
-// // 初始化 context
-// let arToolkitContext = new THREEX.ArTookitContext({
-//   cameraParametersUrl: THREEX.ArTookitContext.baseUrl + '',
-//   // 单摄像头
-//   detectionMode: 'mono'
-// })
+// AR.js 初始化
+let onRenderFcts = [] // 主渲染循环中使用的渲染函数
+let arToolkitSource = new THREEX.ArToolkitSource({
+  sourceType: 'webcam'
+})
+
+arToolkitSource.init(() => {
+  arToolkitSource.onResizeElement()
+  arToolkitSource.copyElementSizeTo(renderer.domElement)
+  if (arToolkitSource.arController !== null) {
+    arToolkitSource.copyElementSizeTo(arToolkitSource.arController.canvas)
+  }
+})
+
+// 初始化 context
+let arToolkitContext = new THREEX.ArToolkitContext({
+  // cameraParametersUrl: THREEX.ArToolkitContext.baseUrl + '../data/data/camera_para.dat', // 使用 ar.js 自带的摄像机参数文件
+  // 单摄像头
+  detectionMode: 'mono'
+})
+
+// 将 ar context 捕获的真实相机数据渲染到 web
+onRenderFcts.push(() => {
+  if (arToolkitSource.ready === false) return
+  arToolkitContext.update(arToolkitSource.domElement)
+  scene.visible = camera.visible
+})
 
 export default defineComponent({
   setup() {
-    const state = reactive({
-      clock: new THREE.Clock(),
-      oldTime: 0,
-    })
+    const state = reactive({})
 
     // 初始化
     function init() {
       // 实例化相机
       camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 200);
       camera.position.set(0, 10, 50);
+      // 初始化 ar.js 控制器
+      // 绑定到 camera
+      console.log(THREEX.ArToolkitContext, 123)
+      let markerControls = new THREEX.ArMarkerControls(arToolkitContext, camera, {
+        type: 'pattern', // 标记 类型
+        // patternUrl: THREEX.ArToolkitContext.baseUrl + '../data/data/patt.hiro', // TODO
+        changeMatrixMode: 'cameraTransformMatrix'
+      })
+
       // 实例化场景
       scene = new THREE.Scene();
+      scene.visible = false; // markerControls 需要一个不可查看的 scene
+
+      onRenderFcts.push(() => {
+        renderer.render(scene, camera);
+      })
+
       // 创建聚光灯光源
       const dirLight = new THREE.SpotLight(0xffffff);
       dirLight.position.set(0, 10, 50);
@@ -95,10 +113,15 @@ export default defineComponent({
 
       // 渲染器
       renderer = new THREE.WebGLRenderer({
+        antialias: true,
         alpha: true // 背景透明
       });
+      renderer.setClearColor(new THREE.Color('lightgrey'), 0)
       renderer.setPixelRatio(window.devicePixelRatio);
       renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.domElement.style.position = 'absolute'
+      renderer.domElement.style.top = '0px'
+      renderer.domElement.style.left = '0px'
       renderer.shadowMap.enabled = true;
       document.querySelector('.page-box').appendChild(renderer.domElement);
       // FPS 性能面板
@@ -110,16 +133,25 @@ export default defineComponent({
 
     // 循环
     function loop() {
-      mixer && mixer.update()
+      // mixer && mixer.update()
       stats.update()
-      renderer.render(scene, camera);
+      onRenderFcts.forEach((onRenderFct) => {
+        onRenderFct()
+      })
       requestAnimationFrame(loop);
     }
 
     function handleResize() {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      arToolkitSource.onResizeElement()
+      arToolkitSource.copyElementSizeTo(renderer.domElement)
+      if (arToolkitSource.arController !== null) {
+        console.log(arToolkitSource, 123123)
+        arToolkitSource.copyElementSizeTo(arToolkitSource.arController.canvas)
+      }
+
+      // camera.aspect = window.innerWidth / window.innerHeight;
+      // camera.updateProjectionMatrix();
+      // renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
     function handleClick() {
@@ -139,7 +171,7 @@ export default defineComponent({
       // load
       const loader = new FBXLoader()
       loader.load('src/assets/web-ar/dancer_girl_fbx/source/Wave Hip Hop Dance.fbx', (object) => {
-        console.log(object)
+        console.log('fbx', object)
         object.traverse( function ( child ) {
           child.material = new THREE.MeshPhongMaterial({
             map: new THREE.TextureLoader().load('src/assets/web-ar/dancer_girl_fbx/textures/Sasha3_Coat_BaseColor.tga.png')
@@ -182,6 +214,6 @@ export default defineComponent({
 
 <style lang="less" scoped>
 .page-box {
-  background: #000;
+  //background: #000;
 }
 </style>
