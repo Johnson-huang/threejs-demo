@@ -143,7 +143,8 @@ export default defineComponent({
 
         // CONTEXT
         arToolkitContext = new THREEX.ArToolkitContext({
-          cameraParametersUrl: THREEX.ArToolkitContext.baseURL + '../data/data/camera_para.dat',
+          // cameraParametersUrl: THREEX.ArToolkitContext.baseURL + '../data/data/camera_para.dat',
+          cameraParametersUrl: 'src/data/camera_para.dat',
           // debug: true,
           // detectionMode: 'mono_and_matrix',
           detectionMode: 'mono',
@@ -170,7 +171,8 @@ export default defineComponent({
         // MARKER
         arMarkerControls = new THREEX.ArMarkerControls(arToolkitContext, markerRoot, {
           type: 'pattern',
-          patternUrl: THREEX.ArToolkitContext.baseURL + '../data/data/patt.hiro',
+          // patternUrl: THREEX.ArToolkitContext.baseURL + '../data/data/patt.hiro',
+          patternUrl: 'src/data/patt.hiro',
         })
 
         console.log('ArMarkerControls', arMarkerControls);
