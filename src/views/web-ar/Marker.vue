@@ -17,9 +17,14 @@ let gh = null;
 let mixer = null; // 动画混合
 let stats = new Stats()
 
-let markerControls = null
+let markerRoot;
+let onRenderFcts = [];
+let arMarkerControls = null
 let arToolkitSource = null
 let arToolkitContext = null
+let smoothedRoot = null
+let smoothedControls = null
+let arWorldRoot = null
 
 // 模型动画
 class AnimationMixer {
@@ -50,155 +55,34 @@ export default defineComponent({
     const state = reactive({})
 
     // 初始化
-    function init() {
-      // init renderer
-      var renderer = new THREE.WebGLRenderer({
-        // antialias	: true,
-        alpha: true
-      });
-      renderer.setClearColor(new THREE.Color('lightgrey'), 0)
-      // renderer.setPixelRatio( 2 );
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.domElement.style.position = 'absolute'
-      renderer.domElement.style.top = '0px'
-      renderer.domElement.style.left = '0px'
-      document.querySelector('.page-box').appendChild(renderer.domElement);
-
-      // array of functions for the rendering loop
-      var onRenderFcts = [];
-      var arToolkitContext, arMarkerControls, markerRoot;
-
-      // init scene and camera
-      var scene = new THREE.Scene();
-
-      var ambient = new THREE.AmbientLight(0x666666);
-      scene.add(ambient);
-
-      var directionalLight = new THREE.DirectionalLight(0x887766);
-      directionalLight.position.set(-1, 1, 1).normalize();
-      scene.add(directionalLight);
-
-      //////////////////////////////////////////////////////////////////////////////////
-      //		Initialize a basic camera
-      //////////////////////////////////////////////////////////////////////////////////
-
-      // Create a camera
-      var camera = new THREE.Camera();
-      scene.add(camera);
+    async function init() {
+      // 渲染器
+      initRenderer()
+      // 场景
+      initScene()
+      // 灯光
+      initLight()
+      // 相机
+      initCamera()
+      // FPS 监控
+      initStats()
 
       markerRoot = new THREE.Group
       scene.add(markerRoot)
 
-      ////////////////////////////////////////////////////////////////////////////////
-      //          handle arToolkitSource
-      ////////////////////////////////////////////////////////////////////////////////
-
-      var arToolkitSource = new THREEX.ArToolkitSource({
-        // to read from the webcam
-        sourceType: 'webcam',
-
-        // // to read from an image
-        //  sourceType : 'image',
-        // sourceUrl : THREEX.ArToolkitContext.baseURL + '../data/images/img.jpg',
-        // sourceUrl : THREEX.ArToolkitContext.baseURL + '../data/images/armchair.jpg',
-
-        // to read from a video
-        // sourceType : 'video',
-        // sourceUrl : THREEX.ArToolkitContext.baseURL + '../data/videos/headtracking.mp4',
-      })
-
-      arToolkitSource.init(() => {
-        arToolkitSource.domElement.addEventListener('canplay', () => {
-          console.log(
-              'canplay',
-              'actual source dimensions',
-              arToolkitSource.domElement.videoWidth,
-              arToolkitSource.domElement.videoHeight
-          );
-
-          initARContext();
-        });
-        onResize();
-      });
+      // 实时反求摄像机
+      await initARSource()
+      // 通过 Canvas 来联系摄像头与 three.js
+      // 校准摄像机参数，用于寻找标记位置
+      initARContext();
+      // 根据训练出来的数据，告诉摄像机需要识别的标记样子
+      // 最终实现在摄像界面上作图
+      initARControls()
 
       // handle resize
-      window.addEventListener('resize', function () {
-        onResize()
-      })
-      function onResize() {
-        arToolkitSource.onResizeElement()
-        arToolkitSource.copyElementSizeTo(renderer.domElement)
-        if (arToolkitContext.arController !== null) {
-          arToolkitSource.copyElementSizeTo(arToolkitContext.arController.canvas)
-        }
-      }
+      window.addEventListener('resize', onResize)
 
-      ////////////////////////////////////////////////////////////////////////////////
-      //          initialize arToolkitContext
-      ////////////////////////////////////////////////////////////////////////////////
-
-      // create atToolkitContext
-      function initARContext() {
-        console.log('initARContext()');
-
-        // CONTEXT
-        arToolkitContext = new THREEX.ArToolkitContext({
-          // cameraParametersUrl: THREEX.ArToolkitContext.baseURL + '../data/data/camera_para.dat',
-          cameraParametersUrl: 'src/data/camera_para.dat',
-          // debug: true,
-          // detectionMode: 'mono_and_matrix',
-          detectionMode: 'mono',
-          // detectionMode: 'color_and_matrix',
-          // matrixCodeType: '3x3',
-
-          canvasWidth: 80 * 3,
-          canvasHeight: 60 * 3,
-
-          maxDetectionRate: 30,
-        })
-
-        arToolkitContext.init(() => {
-          camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
-
-          arToolkitContext.arController.orientation = getSourceOrientation();
-          arToolkitContext.arController.options.orientation = getSourceOrientation();
-
-          console.log('arToolkitContext', arToolkitContext);
-        });
-
-
-
-        // MARKER
-        arMarkerControls = new THREEX.ArMarkerControls(arToolkitContext, markerRoot, {
-          type: 'pattern',
-          // patternUrl: THREEX.ArToolkitContext.baseURL + '../data/data/patt.hiro',
-          patternUrl: 'src/data/patt.hiro',
-        })
-
-        console.log('ArMarkerControls', arMarkerControls);
-      }
-
-      function getSourceOrientation() {
-        if (!arToolkitSource) {
-          return null;
-        }
-
-        console.log(
-            'actual source dimensions',
-            arToolkitSource.domElement.videoWidth,
-            arToolkitSource.domElement.videoHeight
-        );
-
-        if (arToolkitSource.domElement.videoWidth > arToolkitSource.domElement.videoHeight) {
-          console.log('source orientation', 'landscape');
-          return 'landscape';
-        } else {
-          console.log('source orientation', 'portrait');
-          return 'portrait';
-        }
-      }
-
-      // update artoolkit on every frame
+      // 更新反求摄像机
       onRenderFcts.push(function () {
         if (!arToolkitContext || !arToolkitSource || !arToolkitSource.ready) {
           return;
@@ -207,11 +91,10 @@ export default defineComponent({
         arToolkitContext.update(arToolkitSource.domElement)
       })
 
-
       // build a smoothedControls
-      var smoothedRoot = new THREE.Group()
+      smoothedRoot = new THREE.Group()
       scene.add(smoothedRoot)
-      var smoothedControls = new THREEX.ArSmoothedControls(smoothedRoot, {
+      smoothedControls = new THREEX.ArSmoothedControls(smoothedRoot, {
         lerpPosition: 0.4,
         lerpQuaternion: 0.3,
         lerpScale: 1,
@@ -222,59 +105,36 @@ export default defineComponent({
         smoothedControls.update(markerRoot)
       })
 
-      // smoothedControls.addEventListener('becameVisible', function(){
-      // 	console.log('becameVisible event notified')
-      // })
-      // smoothedControls.addEventListener('becameUnVisible', function(){
-      // 	console.log('becameUnVisible event notified')
-      // })
-
       //////////////////////////////////////////////////////////////////////////////////
       //		add an object in the scene
       //////////////////////////////////////////////////////////////////////////////////
 
-      // var arWorldRoot = markerRoot
-      var arWorldRoot = smoothedRoot
+      arWorldRoot = smoothedRoot
 
-      var mesh = new THREE.AxesHelper()
-      // markerRoot.add(mesh)
-      arWorldRoot.add(mesh)
+      // 增加辅助线
+      addAxesHelper()
 
-      // add a torus knot
-      var geometry = new THREE.BoxGeometry(1, 1, 1);
-      var material = new THREE.MeshNormalMaterial({
-        transparent: true,
-        opacity: 0.5,
-        side: THREE.DoubleSide
-      })
-      var mesh = new THREE.Mesh(geometry, material);
-      mesh.position.y = geometry.parameters.height / 2
-      // markerRoot.add( mesh );
-      arWorldRoot.add(mesh)
+      // 增加外部立方体
+      addGeometry()
+      // 增加三维环面扭结
+      const mesh = addTorusKnotGeometry()
 
-      var geometry = new THREE.TorusKnotGeometry(0.3, 0.1, 64, 16);
-      var material = new THREE.MeshNormalMaterial();
-      var mesh = new THREE.Mesh(geometry, material);
-      mesh.position.y = 0.5
-      // markerRoot.add( mesh );
-      arWorldRoot.add(mesh);
-
+      // 三维环面扭结 旋转效果
       onRenderFcts.push(function (delta) {
         mesh.rotation.x += delta * Math.PI
       })
 
-      //////////////////////////////////////////////////////////////////////////////////
-      //		render the whole thing on the page
-      //////////////////////////////////////////////////////////////////////////////////
-      var stats = new Stats();
-      document.body.appendChild(stats.dom);
-      // render the scene
+      // 渲染场景 scene
       onRenderFcts.push(function () {
         renderer.render(scene, camera);
         stats.update();
       })
 
       // run the rendering loop
+      // loop()
+      // function loop() {
+      //   requestAnimationFrame(loop)
+      // }
       var lastTimeMsec = null
       requestAnimationFrame(function animate(nowMsec) {
         // keep looping
@@ -290,15 +150,161 @@ export default defineComponent({
       })
     }
 
-    onMounted(() => {
-      init()
+    // 渲染器
+    function initRenderer() {
+      renderer = new THREE.WebGLRenderer({
+        alpha: true
+      });
+      renderer.setClearColor(new THREE.Color('lightgrey'), 0)
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.domElement.style.position = 'absolute'
+      renderer.domElement.style.top = '0px'
+      renderer.domElement.style.left = '0px'
+      document.querySelector('.page-box').appendChild(renderer.domElement);
+    }
 
-      // window.addEventListener('resize', handleResize);
+    // 场景
+    function initScene() {
+      scene = new THREE.Scene();
+    }
+
+    // 灯光
+    function initLight() {
+      const ambient = new THREE.AmbientLight(0x666666);
+      scene.add(ambient);
+
+      const directionalLight = new THREE.DirectionalLight(0x887766);
+      directionalLight.position.set(-1, 1, 1).normalize();
+      scene.add(directionalLight);
+    }
+
+    // 相机
+    function initCamera() {
+      camera = new THREE.Camera();
+      scene.add(camera);
+    }
+
+    // 增加辅助线
+    function addAxesHelper() {
+      const mesh = new THREE.AxesHelper()
+      arWorldRoot.add(mesh)
+    }
+
+    // 增加外部立方体
+    function addGeometry() {
+      const geometry = new THREE.BoxGeometry(1, 1, 1);
+      const material = new THREE.MeshNormalMaterial({
+        transparent: true,
+        opacity: 0.5,
+        side: THREE.DoubleSide
+      })
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.position.y = geometry.parameters.height / 2
+      arWorldRoot.add(mesh)
+      return mesh
+    }
+
+    // 增加三维环面扭结
+    function addTorusKnotGeometry() {
+      const geometry = new THREE.TorusKnotGeometry(0.3, 0.1, 64, 16);
+      const material = new THREE.MeshNormalMaterial();
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.position.y = 0.5
+      arWorldRoot.add(mesh);
+      return mesh
+    }
+
+    // FPS 监控
+    function initStats() {
+      stats = new Stats();
+      document.querySelector('.page-box').appendChild(stats.dom);
+    }
+
+    // 实时反求摄像机
+    function initARSource() {
+      return new Promise((resolve) => {
+        arToolkitSource = new THREEX.ArToolkitSource({
+          // to read from the webcam
+          sourceType: 'webcam',
+        })
+        arToolkitSource.init(() => {
+          arToolkitSource.domElement.addEventListener('canplay', () => {
+            resolve()
+          });
+          onResize();
+        });
+      })
+    }
+
+    // 通过 Canvas 来联系摄像头与 three.js
+    // 校准摄像机参数，用于寻找标记位置
+    function initARContext() {
+      // CONTEXT
+      arToolkitContext = new THREEX.ArToolkitContext({
+        cameraParametersUrl: 'src/data/camera_para.dat',
+        // debug: true,
+        // detectionMode: 'mono_and_matrix',
+        detectionMode: 'mono',
+        // detectionMode: 'color_and_matrix',
+        // matrixCodeType: '3x3',
+        canvasWidth: 80 * 3,
+        canvasHeight: 60 * 3,
+        maxDetectionRate: 30,
+      })
+
+      arToolkitContext.init(() => {
+        camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
+
+        arToolkitContext.arController.orientation = getSourceOrientation();
+        arToolkitContext.arController.options.orientation = getSourceOrientation();
+
+        console.log('arToolkitContext', arToolkitContext);
+      });
+    }
+
+    // 根据训练出来的数据，告诉摄像机需要识别的标记样子
+    // 最终实现在摄像界面上作图
+    function initARControls() {
+      arMarkerControls = new THREEX.ArMarkerControls(arToolkitContext, markerRoot, {
+        type: 'pattern',
+        patternUrl: 'src/data/patt.hiro',
+      })
+    }
+
+    function getSourceOrientation() {
+      if (!arToolkitSource) {
+        return null;
+      }
+
+      console.log(
+          'actual source dimensions',
+          arToolkitSource.domElement.videoWidth,
+          arToolkitSource.domElement.videoHeight
+      );
+
+      if (arToolkitSource.domElement.videoWidth > arToolkitSource.domElement.videoHeight) {
+        console.log('source orientation', 'landscape');
+        return 'landscape';
+      } else {
+        console.log('source orientation', 'portrait');
+        return 'portrait';
+      }
+    }
+
+    function onResize() {
+      arToolkitSource.onResizeElement()
+      arToolkitSource.copyElementSizeTo(renderer.domElement)
+      if (arToolkitContext.arController !== null) {
+        arToolkitSource.copyElementSizeTo(arToolkitContext.arController.canvas)
+      }
+    }
+
+    onMounted(async () => {
+      await init()
     })
 
     onUnmounted(() => {
-      // window.removeEventListener('resize', handleResize)
-      // window.removeEventListener('click', handleClick)
+      window.removeEventListener('resize', onResize)
     })
 
     return {
@@ -309,7 +315,5 @@ export default defineComponent({
 </script>
 
 <style lang="less" scoped>
-.page-box {
-  //background: #000;
-}
+.page-box {}
 </style>
