@@ -5,17 +5,21 @@
 ## 技术栈
 
 ### 3D 相关技术栈
-- 3D场景：threejs
+- 3D：threejs
 - 人脸识别：tracking
-- 经纬度坐标处理：geolib
+- 坐标处理：geolib
+- AR：@ar-js-org/ar.js
 
-### 其他技术栈
+### 基础技术栈
 - Vue 3.x
 - Vue-route 4.x
 - Vite 2.x
 - less
 
-## 场景
+### 部署相关
+- HTTPS：mkcert
+
+## 场景实现
 - [x] 汽车 3D 展厅
   - [x] 点击更换颜色
   - [ ] 开关门
@@ -25,7 +29,11 @@
 - [x] WebVR 全景看房
   - [x] 球体方案
   - [x] 正方体方案
-  - [x] 信息点点击事件
+  - [x] 全景点击
+- [x] WebAR
+  - [x] 标记方案
+  - [ ] 图像方案
+  - [ ] 地理位置方案
 - [x] 地图
   - [x] 建筑点击事件
   - [x] 道路动画
@@ -57,7 +65,6 @@ out body;
 out skel qt;
 ```
 
-## 问题解决
 ### overpass-turbo 数据导出报错
 问题：overpass-turbo 中 export 报错  
 解决：将 chrome 语音设置为<font color="#dd0000">**英文**</font>，再进行 export
@@ -68,3 +75,40 @@ out skel qt;
 解决：  
 - 使用<font color="#dd0000">**墨卡托投影算法**</font>，很准，但是极耗性能
 - 使用 geolib 库来进行简易转换，准确度降低，性能消耗也减低
+
+## 使用 mkcert 开启 HTTPS 开发服务器
+### windows
+```text
+// 使用 PowerShell，修改命令执行策略
+Set-ExecutionPolicy -ExecutionPolicy Bypass // 修改命令执行策略
+
+// 使用 choco 安装 mkcert
+choco install mkcert
+
+// 查看是否安装成功
+mkcert --version
+
+// 安装CA证书
+mkcert -install
+
+// 生成自签证书，产出目录在当前 pwd 下
+mkcert localhost
+
+// 查看服务端证书路径
+mkcert -CAROOT
+
+// 项目中使用自签证书
+server: {
+  https: {
+    cert: fs.readFileSync(path.join(__dirname, 'src/ssl/win.pem')),
+    key: fs.readFileSync(path.join(__dirname, 'src/ssl/win-key.pem'))
+  }
+}
+```
+
+## AR
+- 摄像机参数文件
+  - 使用 ar.js 自带的 THREEX.ArTookitContext.baseUrl + './data/data/camera_para.dat'
+  - 校准摄像机产生摄像机参数文件：https://artoolkit.org/documentation/doku.php?id=2_Configuration:config_camera_calibration
+- 绑定二维码的标识文件路径
+  - 使用 artoolkit 的训练方法

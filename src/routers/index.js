@@ -1,6 +1,7 @@
 import {createRouter, createWebHashHistory} from 'vue-router';
 import Autostereoscopy from "@/routers/autostereoscopy";
 import WebVr from "@/routers/web-vr";
+import WebAR from "@/routers/web-ar";
 import map from "@/routers/map";
 
 export const allRoutes = [
@@ -11,6 +12,8 @@ export const allRoutes = [
     ...Autostereoscopy,
     // Web VR
     ...WebVr,
+    // Web AR
+    ...WebAR,
     // 地图
     ...map
 ]

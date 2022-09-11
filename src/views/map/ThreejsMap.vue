@@ -388,6 +388,7 @@ export default defineComponent({
 
     onUnmounted(() => {
       window.removeEventListener('resize', onWindowResize)
+      window.removeEventListener('mousedown', onMouseDown)
     })
 
     return {
